@@ -1,15 +1,15 @@
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
-import random
+from aiogram import F
 
-ANSWERS = [
+answers = [
     'У тебя все получиться не сомневайся',
     'Хорошие перспективы',
     'Еще немного и ты получишь желаемый результат',
     'Дорогу осилит идущий',
     'Все будет хорошо, я точно знаю'
-]
+    ]
 
 BOT_TOKEN = '6799480724:AAHaPHLbMteAi2QPK4o9FiWz_wCKzMvKL74'
 
@@ -38,10 +38,30 @@ async def process_help_command(message: Message):
     )
 
 
+@dp.message(F.photo)
+async def send_echo(message: Message):
+    print(message)
+    await message.reply_photo(message.photo[0].file_id)
+
+
+@dp.message(F.audio)
+async def send_echo(message: Message):
+    await message.reply_audio(message.audio.file_id)
+
+
+@dp.message(F.video)
+async def send_echo(message: Message):
+    await message.reply_video(message.video.file_id)
+
+
+@dp.message(F.voice)
+async def send_echo(message: Message):
+    await message.reply_voice(message.voice.file_id)
+
+
 @dp.message()
 async def send_echo(message: Message):
-    result = random.choice(ANSWERS)
-    await message.reply(text=result)
+    await message.reply(text=message.text)
 
 
 if __name__ == '__main__':
