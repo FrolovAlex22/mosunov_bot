@@ -1,32 +1,48 @@
-import requests
-import time
+from aiogram import Bot, Dispatcher
+from aiogram.filters import Command
+from aiogram.types import Message
+import random
 
+ANSWERS = [
+    'У тебя все получиться не сомневайся',
+    'Хорошие перспективы',
+    'Еще немного и ты получишь желаемый результат',
+    'Дорогу осилит идущий',
+    'Все будет хорошо, я точно знаю'
+]
 
-API_URL = 'https://api.telegram.org/bot'
-API_CATS_URL = 'https://api.thecatapi.com/v1/images/search'
 BOT_TOKEN = '6799480724:AAHaPHLbMteAi2QPK4o9FiWz_wCKzMvKL74'
-ERROR_TEXT = 'Здесь должна была быть картинка с котиком :('
 
-offset = -2
-counter = 0
-cat_response: requests.Response
-cat_link: str
+bot = Bot(token=BOT_TOKEN)
+
+dp = Dispatcher()
 
 
-while counter < 100:
-    print('attempt =', counter)
-    updates = requests.get(f'{API_URL}{BOT_TOKEN}/getUpdates?offset={offset + 1}').json()
+@dp.message(Command(commands=["start"]))
+async def process_start_command(message: Message):
+    await message.answer('Привет!\nя генератор случайных предсказаний!\nНапиши мне что-нибудь')
 
-    if updates['result']:
-        for result in updates['result']:
-            offset = result['update_id']
-            chat_id = result['message']['from']['id']
-            cat_response = requests.get(API_CATS_URL)
-            if cat_response.status_code == 200:
-                cat_link = cat_response.json()[0]['url']
-                requests.get(f'{API_URL}{BOT_TOKEN}/sendPhoto?chat_id={chat_id}&photo={cat_link}')
-            else:
-                requests.get(f'{API_URL}{BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={ERROR_TEXT}')
 
-    time.sleep(1)
-    counter += 1
+@dp.message(Command(commands=['help']))
+async def process_help_command(message: Message):
+    await message.answer(
+        'Напиши мне что-нибудь и в ответ '
+        'я пришлю тебе твое предсказание'
+    )
+
+
+@dp.message(Command(commands=['sanek']))
+async def process_help_command(message: Message):
+    await message.answer(
+        'А это я так...\nДля практики'
+    )
+
+
+@dp.message()
+async def send_echo(message: Message):
+    result = random.choice(ANSWERS)
+    await message.reply(text=result)
+
+
+if __name__ == '__main__':
+    dp.run_polling(bot)
