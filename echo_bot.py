@@ -38,15 +38,43 @@ async def process_help_command(message: Message):
     )
 
 
+@dp.message(F.photo)
+async def send_echo(message: Message):
+    print(message)
+    await message.reply_photo(message.photo[0].file_id)
+
+
+@dp.message(F.audio)
+async def send_echo(message: Message):
+    await message.reply_audio(message.audio.file_id)
+
+
+@dp.message(F.video)
+async def send_echo(message: Message):
+    await message.reply_video(message.video.file_id)
+
+
+@dp.message(F.voice)
+async def send_echo(message: Message):
+    await message.reply_voice(message.voice.file_id)
+
+
 @dp.message()
 async def send_echo(message: Message):
-    try:
-        await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        await message.reply(
-            text='Данный тип апдейтов не поддерживается '
-                 'методом send_copy'
-        )
+    await message.reply(text=message.text)
+
+
+# Этот хэндлер будет срабатывать на любые ваши сообщения,
+# кроме команд "/start" и "/help"
+# @dp.message()
+# async def send_echo(message: Message):
+#     try:
+#         await message.send_copy(chat_id=message.chat.id)
+#     except TypeError:
+#         await message.reply(
+#             text='Данный тип апдейтов не поддерживается '
+#                  'методом send_copy'
+#         )
 
 
 
