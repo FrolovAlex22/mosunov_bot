@@ -15,11 +15,7 @@ dp = Dispatcher()
 ATTEMPTS = 5
 
 # Словарь, в котором будут храниться данные пользователя
-user = {'in_game': False,
-        'secret_number': None,
-        'attempts': None,
-        'total_games': 0,
-        'wins': 0}
+users = {}
 
 
 def random_int_for_game() ->int:
@@ -32,6 +28,16 @@ async def process_start_command(message: Message):
     await message.answer(
         'Привет!\nдавайте сыграем в игру "Угадай число"!\n'
         'Чтобы узнать правила и список команд напишите "/help"')
+    # Если пользователь только запустил бота и его нет в словаре '
+    # 'users - добавляем его в словарь
+    if message.from_user.id not in users:
+        users[message.from_user.id] = {
+            'in_game': False,
+            'secret_number': None,
+            'attempts': None,
+            'total_games': 0,
+            'wins': 0
+        }
 
 
 # Этот хэндлер будет срабатывать на команду "/help"
@@ -50,16 +56,16 @@ async def process_help_command(message: Message):
 @dp.message(Command(commands=['stat']))
 async def process_stat_command(message: Message):
     await message.answer(
-        f'Всего игр сыграно:{user["total_games"]}\n'
-        f'Из них выиграно:{user["wins"]}'
+        f'Всего игр сыграно:{users[message.from_user.id]["total_games"]}\n'
+        f'Из них выиграно:{users[message.from_user.id]["wins"]}'
     )
 
 
 # Этот хэндлер будет срабатывать на команду "/cancel"
 @dp.message(Command(commands=['cancel']))
 async def process_cancel_command(message: Message):
-    if user['in_game']:
-        user['in_game'] = False
+    if users[message.from_user.id]['in_game']:
+        users[message.from_user.id]['in_game'] = False
         await message.answer(
             'Вы вышли из игры\n'
             'Если захотите сыграть напишите нам сообщение из списка:\n'
@@ -70,10 +76,10 @@ async def process_cancel_command(message: Message):
 # Этот хэндлер будет срабатывать на согласие пользователя сыграть в игру
 @dp.message(F.text.lower().in_(['да', 'давай', 'сыграем', 'игра', 'играть', 'хочу играть']))
 async def process_positive_answer(message: Message):
-    if not user['in_game']:
-        user['in_game'] = True
-        user['secret_number'] = random_int_for_game()
-        user['attempts'] = ATTEMPTS
+    if not users[message.from_user.id]['in_game']:
+        users[message.from_user.id]['in_game'] = True
+        users[message.from_user.id]['secret_number'] = random_int_for_game()
+        users[message.from_user.id]['attempts'] = ATTEMPTS
         await message.answer(
             'Начали!\n\nЯ загадал число от 1 до 100, '
             'попробуй угадать!'
@@ -89,7 +95,7 @@ async def process_positive_answer(message: Message):
 # Этот хэндлер будет срабатывать на отказ пользователя сыграть в игру
 @dp.message(F.text.lower().in_(['нет', 'не', 'не хочу', 'не буду']))
 async def process_negative_answer(message: Message):
-    if not user['in_game']:
+    if not users[message.from_user.id]['in_game']:
         await message.answer(
             'Жаль :(\n\nЕсли захотите поиграть - просто '
             'напишите об этом'
@@ -104,25 +110,25 @@ async def process_negative_answer(message: Message):
 # Этот хэндлер будет срабатывать на отправку пользователем чисел от 1 до 100
 @dp.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
 async def process_numbers_answer(message: Message):
-    if user['in_game']:
-        if int(message.text) == user['secret_number']:
-            user['in_game'] = False
-            user['wins'] += 1
-            user['total_games'] += 1
+    if users[message.from_user.id]['in_game']:
+        if int(message.text) == users[message.from_user.id]['secret_number']:
+            users[message.from_user.id]['in_game'] = False
+            users[message.from_user.id]['wins'] += 1
+            users[message.from_user.id]['total_games'] += 1
             await message.answer('Урааа! Вы выиграли')
-        elif int(message.text) < user['secret_number']:
-            user['attempts'] += 1
+        elif int(message.text) < users[message.from_user.id]['secret_number']:
+            users[message.from_user.id]['attempts'] -= 1
             await message.answer('Число больше')
-        elif int(message.text) > user['secret_number']:
-            user['attempts'] += 1
+        elif int(message.text) > users[message.from_user.id]['secret_number']:
+            users[message.from_user.id]['attempts'] -= 1
             await message.answer('Число меньше')
-        if user['attempts'] == 0:
-            user['in_game'] = False
-            user['total_games'] += 1
+        if users[message.from_user.id]['attempts'] == 0:
+            users[message.from_user.id]['in_game'] = False
+            users[message.from_user.id]['total_games'] += 1
             await message.answer(
                 'Ваши попытки закончились\n'
                 'Повезет в следующий раз\n\n'
-                f'Загаданное число было:{user["secret_number"]}\n'
+                f'Загаданное число было:{users[message.from_user.id]['secret_number']}\n'
                 'Сыграем еще?'
             )
     else:
@@ -132,7 +138,7 @@ async def process_numbers_answer(message: Message):
 # Этот хэндлер будет срабатывать на остальные любые сообщения
 @dp.message()
 async def process_other_answers(message: Message):
-    if user['in_game']:
+    if users[message.from_user.id]['in_game']:
         await message.answer(
             'Мы с вами в игре!\n'
             'Вам нужно прислать число от 1 до 100'
