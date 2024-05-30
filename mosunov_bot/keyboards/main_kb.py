@@ -4,8 +4,8 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from lexicon.lexicon import LEXICON
 
 button_library = KeyboardButton(text=LEXICON['library_button'])
-button_product = KeyboardButton(text=LEXICON['product'])
-button_form = KeyboardButton(text=LEXICON['form_button'])
+button_product = KeyboardButton(text=LEXICON['product_button'])
+button_form = KeyboardButton(text=LEXICON['formtosend'])
 
 
 start_kb_builder = ReplyKeyboardBuilder()

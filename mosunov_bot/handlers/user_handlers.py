@@ -10,6 +10,7 @@ from aiogram.types import CallbackQuery, Message
 from filters.filters import IsDigitCallbackData
 from keyboards.inlines_kb import create_lybrary_keyboard, create_product_keyboard
 from keyboards.main_kb import start_no_kb
+from handlers.form_handlers import process_formtosend_command
 # from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON
 from database.database import library_of_articles, products_in_sale
@@ -42,29 +43,9 @@ async def process_help_command(message: Message):
     await message.answer(LEXICON[message.text])
 
 
-@router.message(Command(commands='formtosend'))
-async def process_formtosend_command(message: Message):
-    await message.answer(LEXICON[message.text])
-
-
-@router.message(Command(commands='cancel'))
-async def process_cancel_command(message: Message):
-    await message.answer(LEXICON[message.text])
-
-
 @router.message(Command(commands='library'))
-async def process_library_command(message: Message):
-    if library_of_articles:
-        await message.answer(
-            text=LEXICON[message.text],
-            reply_markup=create_lybrary_keyboard()
-        )
-    else:
-        await message.answer(text=LEXICON['no_library'])
-
-
 @router.message(F.text == LEXICON['library_button'])
-async def process_yes_answer(message: Message):
+async def process_library_command(message: Message):
     if library_of_articles:
         await message.answer(
             text=LEXICON['/library'],
@@ -74,13 +55,27 @@ async def process_yes_answer(message: Message):
         await message.answer(text=LEXICON['no_library'])
 
 
-@router.message(F.text == LEXICON['product'])
+# @router.message(F.text == LEXICON['library_button'])
+# async def process_yes_answer(message: Message):
+#     if library_of_articles:
+#         await message.answer(
+#             text=LEXICON['/library'],
+#             reply_markup=create_lybrary_keyboard()
+#         )
+#     else:
+#         await message.answer(text=LEXICON['no_library'])
+
+
+@router.message(Command(commands='product'))
+@router.message(F.text == LEXICON['product_button'])
 async def process_yes_answer(message: Message):
     if products_in_sale:
         await message.answer(
-            text=LEXICON['product_button'],
+            text=LEXICON['product'],
             reply_markup=create_product_keyboard()
         )
+    else:
+        await message.answer(text=LEXICON['no_product'])
 
 @router.callback_query(IsDigitCallbackData())
 async def process_backward_press(callback: CallbackQuery):
