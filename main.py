@@ -1,10 +1,16 @@
+import os
+
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-# Вместо BOT TOKEN HERE нужно вставить токен вашего бота,
-# полученный у @BotFather
-BOT_TOKEN = '6799480724:AAHaPHLbMteAi2QPK4o9FiWz_wCKzMvKL74'
+from environs import Env
+
+
+env = Env()
+env.read_env()
+
+BOT_TOKEN = env('BOT_TOKEN')
 
 # Создаем объекты бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
