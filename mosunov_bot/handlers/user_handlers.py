@@ -55,17 +55,6 @@ async def process_library_command(message: Message):
         await message.answer(text=LEXICON['no_library'])
 
 
-# @router.message(F.text == LEXICON['library_button'])
-# async def process_yes_answer(message: Message):
-#     if library_of_articles:
-#         await message.answer(
-#             text=LEXICON['/library'],
-#             reply_markup=create_lybrary_keyboard()
-#         )
-#     else:
-#         await message.answer(text=LEXICON['no_library'])
-
-
 @router.message(Command(commands='product'))
 @router.message(F.text == LEXICON['product_button'])
 async def process_yes_answer(message: Message):
@@ -87,5 +76,3 @@ async def process_backward_press(callback: CallbackQuery):
     await callback.message.answer(
         text=f'{name}\n\n{text}\nЦена: {price}руб.'
         )
-    # await callback.message.answer_photo(
-    #         photo=user_dict[message.from_user.id]['photo_id'],

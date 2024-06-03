@@ -1,18 +1,15 @@
-from copy import deepcopy
-
 from aiogram import F, Router
-from aiogram.filters import Command, CommandStart, StateFilter
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import (CallbackQuery, InlineKeyboardButton,
-                           InlineKeyboardMarkup, Message, PhotoSize)
-# from database.database import user_dict_template, users_db
-from filters.filters import IsDigitCallbackData
-from keyboards.inlines_kb import create_form_product_keyboard
+from aiogram.types import CallbackQuery,  Message
+from keyboards.inlines_kb import (
+    create_form_product_keyboard,
+    create_a_delivery_form_keyboard
+)
 from keyboards.main_kb import start_no_kb
-# from keyboards.pagination_kb import create_pagination_keyboard
-from lexicon.lexicon import LEXICON, LEXICON_COMMANDS
+from lexicon.lexicon import LEXICON
 
 router = Router()
 
@@ -38,8 +35,8 @@ async def process_formtosend_command(message: Message, state: FSMContext):
     await message.answer(
         text='Нужно заполнить несколько полей чтобы в дальнейшем '
         'я смог сориентироваться по цене и способе доставки\n\n'
-        'Пожалуйста, введите ваши фамилию имя отчество'
-        'без знаков препинания\n\n'
+        '<b>Пожалуйста, введите ваши фамилию имя отчество'
+        'без знаков препинания</b>\n\n'
         'Если вы хотите прервать заполнение анкеты - '
         'отправьте команду /cancel'
         )
@@ -65,7 +62,7 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(StateFilter(FSMFillForm.fill_name), F.text.isalpha())
+@router.message(StateFilter(FSMFillForm.fill_name), F.text.strip().isalpha())
 async def process_name_sent(message: Message, state: FSMContext):
     # Заполнение поля формы "name"
     await state.update_data(name=message.text)
@@ -116,7 +113,8 @@ async def warning_not_adres(message: Message):
         lambda x: x.text[1:].isdigit() or x.text.isdigit()
     )
 async def process_phone_number_sent(message: Message, state: FSMContext):
-    # Заполнение поля формы "phonenumber"
+    # Заполнение поля формы "phonenumber".
+    # Отправка клавиатуры с выбором продукции
     await state.update_data(phonenumber=message.text)
     await message.answer(
         text='Выберите продукцию которая вас интересует\n\n'
@@ -139,26 +137,14 @@ async def warning_not_phone_number(message: Message):
 
 @router.callback_query(StateFilter(FSMFillForm.fill_change_product))
 async def process_wish_news_press(callback: CallbackQuery, state: FSMContext):
-    # Заполнение поля формы "phonenumber"
-    post_button = InlineKeyboardButton(
-        text='Почта России',
-        callback_data='почтароссии'
-    )
-    cdek_button = InlineKeyboardButton(
-        text='CDEK',
-        callback_data='cdek'
-    )
+    # Заполнение поля формы "shipping_method"
     await state.update_data(change_product=callback.data)
-    keyboard: list[list[InlineKeyboardButton]] = [
-        [post_button, cdek_button]
-    ]
-    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     await callback.message.edit_text(
         text='Спасибо! Товар добавлен в форму!\n'
         'Выберите удобный вам способ доставки\n\n'
         'Если вы хотите прервать заполнение анкеты - '
         'отправьте команду /cancel',
-        reply_markup=markup
+        reply_markup=create_a_delivery_form_keyboard()
     )
     await callback.answer()
     await state.set_state(FSMFillForm.fill_shipping_method)

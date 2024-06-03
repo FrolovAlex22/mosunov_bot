@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from lexicon.lexicon import LEXICON
 from database.database import library_of_articles, products_in_sale
 
 
@@ -18,7 +17,7 @@ def create_lybrary_keyboard() -> InlineKeyboardMarkup:
 
 
 def create_product_keyboard() -> InlineKeyboardMarkup:
-    # Создаем объект клавиатуры
+    # Создаем объект клавиатуры с продуктами для продажи
     kb_builder = InlineKeyboardBuilder()
     for num, product in products_in_sale.items():
         text = product[0]
@@ -32,21 +31,29 @@ def create_product_keyboard() -> InlineKeyboardMarkup:
 
 def create_form_product_keyboard() -> InlineKeyboardMarkup:
     # Создаем объект клавиатуры
-    first_button = InlineKeyboardButton(
-        text='Отвсехболезнит',
-        callback_data='Отвсехболезнит'
+    kb_builder = InlineKeyboardBuilder()
+    for _, values in products_in_sale:
+        text = values[0]
+        callback = values[0]
+        kb_builder.row(InlineKeyboardButton(
+            text=f'{text}',
+            callback_data=callback
+        ))
+    return kb_builder.as_markup()
+
+
+def create_a_delivery_form_keyboard() -> InlineKeyboardMarkup:
+    # Создаем объект клавиатуры
+    post_button = InlineKeyboardButton(
+        text='Почта России',
+        callback_data='почтароссии'
     )
-    secotd_button = InlineKeyboardButton(
-        text='Еслибольнопомогит',
-        callback_data='Еслибольнопомогит'
-    )
-    third_button = InlineKeyboardButton(
-        text='Здоровъесохранит',
-        callback_data='Здоровъесохранит'
+    cdek_button = InlineKeyboardButton(
+        text='CDEK',
+        callback_data='cdek'
     )
     keyboard: list[list[InlineKeyboardButton]] = [
-        [first_button],[secotd_button],[third_button]
+        [post_button, cdek_button]
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-
     return markup
