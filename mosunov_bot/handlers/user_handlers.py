@@ -73,6 +73,7 @@ async def process_backward_press(callback: CallbackQuery):
     price = products_in_sale[int(callback.data)][2]
 
     await callback.answer()
+    # callback.message.reply_photo(message.photo[0].file_id)
     await callback.message.answer(
         text=f'{name}\n\n{text}\nЦена: {price}руб.'
         )

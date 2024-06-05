@@ -32,7 +32,7 @@ def create_product_keyboard() -> InlineKeyboardMarkup:
 def create_form_product_keyboard() -> InlineKeyboardMarkup:
     # Создаем объект клавиатуры
     kb_builder = InlineKeyboardBuilder()
-    for _, values in products_in_sale:
+    for _, values in products_in_sale.items():
         text = values[0]
         callback = values[0]
         kb_builder.row(InlineKeyboardButton(

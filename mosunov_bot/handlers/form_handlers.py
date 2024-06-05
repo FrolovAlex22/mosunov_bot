@@ -1,23 +1,29 @@
-from aiogram import F, Router
+from aiogram import Bot ,F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import CallbackQuery,  Message
+from environs import Env
+
 from keyboards.inlines_kb import (
     create_form_product_keyboard,
     create_a_delivery_form_keyboard
 )
 from keyboards.main_kb import start_no_kb
 from lexicon.lexicon import LEXICON
+from filters.filters import IsLastFirstNamePatronymic, IsPhoneNumber
 
 router = Router()
 
-
 storage = MemoryStorage()
 
-
 user_dict: dict[int, dict[str, str | int | bool]] = {}
+
+env = Env()  # Создаем экземпляр класса Env
+env.read_env()
+
+bot = Bot(token=env('BOT_TOKEN'))
 
 
 class FSMFillForm(StatesGroup):
@@ -62,7 +68,7 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(StateFilter(FSMFillForm.fill_name), F.text.strip().isalpha())
+@router.message(StateFilter(FSMFillForm.fill_name), IsLastFirstNamePatronymic())
 async def process_name_sent(message: Message, state: FSMContext):
     # Заполнение поля формы "name"
     await state.update_data(name=message.text)
@@ -110,7 +116,7 @@ async def warning_not_adres(message: Message):
 
 @router.message(
         StateFilter(FSMFillForm.fill_phonenumber),
-        lambda x: x.text[1:].isdigit() or x.text.isdigit()
+        IsPhoneNumber()
     )
 async def process_phone_number_sent(message: Message, state: FSMContext):
     # Заполнение поля формы "phonenumber".
@@ -129,8 +135,8 @@ async def process_phone_number_sent(message: Message, state: FSMContext):
 async def warning_not_phone_number(message: Message):
     # Ввод неверных данных при заполнении поля формы "phonenumber"
     await message.answer(
-        text='В этом поле нужно указать свои номер телефона, цифрами,'
-        'начиная "+"\nЕсли вы хотите прервать заполнение анкеты - '
+        text='В этом поле нужно указать свои номер телефона, цифрами, '
+        'начиная "+" или "8"\nЕсли вы хотите прервать заполнение анкеты - '
         'отправьте команду /cancel'
     )
 
@@ -152,9 +158,23 @@ async def process_wish_news_press(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(StateFilter(FSMFillForm.fill_shipping_method))
-async def process_wish_news_press(callback: CallbackQuery, state: FSMContext):
+async def process_wish_news_press(callback: CallbackQuery,state: FSMContext):
     # Заполнение поля формы "shipping_method", завершение заполнения формы
     await state.update_data(shipping_method=callback.data)
     form_info = await state.get_data()
+    try:
+        await bot.send_message(
+            chat_id=env.int('SEND_MESSAGE_ID'),
+            text=f'<b>Пользователь{callback.from_user.id} заполнил форму!</b>\n'
+            f'\n<b>ФИО:</b>\n{form_info['name']}'
+            f'\n<b>Адрес</b>\n{form_info['adres']}'
+            f'\n<b>Номер телефона</b>\n{form_info['phonenumber']}'
+            f'\n<b>Продукция:</b>\n{form_info['change_product']}'
+            f'\n<b>Спобос доставки:</b>\n{form_info['shipping_method']}',
+            parse_mode='HTML'
+        )
+    except Exception:
+        await callback.message.answer("Ошибка отправки.")
+    await callback.answer()
     await state.clear()
-    await callback.message.answer(f'Спасибо что заполнили форму\n\n{form_info}')
+    await callback.message.answer('Спасибо что заполнили форму')
