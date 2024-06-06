@@ -44,7 +44,8 @@ async def process_formtosend_command(message: Message, state: FSMContext):
         '<b>Пожалуйста, введите ваши фамилию имя отчество'
         'без знаков препинания</b>\n\n'
         'Если вы хотите прервать заполнение анкеты - '
-        'отправьте команду /cancel'
+        'отправьте команду /cancel',
+        reply_markup=None
         )
     await state.set_state(FSMFillForm.fill_name)
 
@@ -162,6 +163,7 @@ async def process_wish_news_press(callback: CallbackQuery,state: FSMContext):
     # Заполнение поля формы "shipping_method", завершение заполнения формы
     await state.update_data(shipping_method=callback.data)
     form_info = await state.get_data()
+    # Отправка сообщения с заполненой формой администратору
     try:
         await bot.send_message(
             chat_id=env.int('SEND_MESSAGE_ID'),

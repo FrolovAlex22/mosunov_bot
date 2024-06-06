@@ -1,20 +1,13 @@
-from copy import deepcopy
-
 from aiogram import F, Router
-from aiogram.filters import Command, CommandStart, StateFilter
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state, State, StatesGroup
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import CallbackQuery, Message
-# from database.database import user_dict_template, users_db
+from aiogram.types import CallbackQuery, Message, FSInputFile
 from filters.filters import IsDigitCallbackData
 from keyboards.inlines_kb import create_lybrary_keyboard, create_product_keyboard
 from keyboards.main_kb import start_no_kb
-from handlers.form_handlers import process_formtosend_command
-# from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON
 from database.database import library_of_articles, products_in_sale
-# from services.file_handling import book
 
 router = Router()
 
@@ -67,13 +60,15 @@ async def process_yes_answer(message: Message):
         await message.answer(text=LEXICON['no_product'])
 
 @router.callback_query(IsDigitCallbackData())
-async def process_backward_press(callback: CallbackQuery):
+async def process_backward_press(callback: CallbackQuery, message: Message):
     name = products_in_sale[int(callback.data)][0]
     text = products_in_sale[int(callback.data)][1]
     price = products_in_sale[int(callback.data)][2]
+    photo = products_in_sale[int(callback.data)][3]
 
     await callback.answer()
-    # callback.message.reply_photo(message.photo[0].file_id)
-    await callback.message.answer(
-        text=f'{name}\n\n{text}\nЦена: {price}руб.'
-        )
+    await callback.message.answer_photo(
+        photo=FSInputFile(f'media/{photo}', filename=f'{name}'),
+        caption=f'{name}\n\n{text}\n\nЦена: {price}руб.',
+        reply_markup=create_product_keyboard()
+    )
