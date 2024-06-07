@@ -179,4 +179,7 @@ async def process_wish_news_press(callback: CallbackQuery,state: FSMContext):
         await callback.message.answer("Ошибка отправки.")
     await callback.answer()
     await state.clear()
-    await callback.message.answer('Спасибо что заполнили форму')
+    await callback.message.answer(
+        'Спасибо что заполнили форму\n\nЯ свяжусь с вами в ближайшее время '
+        'по указанному вами номеру'
+    )

@@ -13,6 +13,6 @@ start_kb_builder = ReplyKeyboardBuilder()
 start_kb_builder.row(button_library, button_product, button_form, width=1)
 
 start_no_kb: ReplyKeyboardMarkup = start_kb_builder.as_markup(
-    one_time_keyboard=True,
+    # one_time_keyboard=True,
     resize_keyboard=True
     )

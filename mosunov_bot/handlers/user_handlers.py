@@ -60,7 +60,7 @@ async def process_yes_answer(message: Message):
         await message.answer(text=LEXICON['no_product'])
 
 @router.callback_query(IsDigitCallbackData())
-async def process_backward_press(callback: CallbackQuery, message: Message):
+async def process_backward_press(callback: CallbackQuery):
     name = products_in_sale[int(callback.data)][0]
     text = products_in_sale[int(callback.data)][1]
     price = products_in_sale[int(callback.data)][2]
